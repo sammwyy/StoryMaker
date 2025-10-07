@@ -1,0 +1,125 @@
+## StoryMaker
+
+Online image editor primarily designed for Instagram Stories (9:16). Compose backgrounds, text, and image elements with transforms and effects, and export the result to image formats. This document describes the current state and the plan to add: audio, image gallery/search, GIF support, video export with custom duration, and an audio visualizer.
+
+### Current features
+- **9:16 canvas (1080×1920)**: high‑quality canvas rendering for Stories.
+- **Backgrounds**: `fit`, `stretch`, solid color, gradient, and `blur` with caching for performance.
+- **Text**: word/character wrapping, color, size, font, rotation, and outline.
+- **Images**: resize, rotate, mirror H/V, corners (square/rounded/circle/custom), brightness/contrast/blur/filters.
+- **Visual editing**: overlays to move, resize (8 handles), and rotate with a guide circle.
+- **Export**: image export to `jpg/png/webp` from the main canvas.
+- **Dark mode**: theme toggle.
+
+### Quick demo (usage flow)
+1. Upload a background image from the sidebar.
+2. Adjust the background (fit/stretch/solid/gradient/blur).
+3. Add texts and images; use the overlay to move, resize, and rotate.
+4. Export in the desired format.
+
+### Requirements
+- Node.js 18+ and npm 9+.
+
+### Installation and scripts
+```bash
+npm install
+npm run dev      # Vite dev server
+npm run build    # Production build
+npm run preview  # Serve the build for verification
+npm run lint     # ESLint + TypeScript rules
+npm run typecheck
+```
+
+### Project structure (overview)
+- `src/components/layout/StoryCanvas.tsx`: canvas rendering of background, images, and text.
+- `src/components/visual-editor/`: visual editors and overlays (text and image).
+- `src/hooks/useTextTransform.ts`, `src/hooks/useImageTransform.ts`: move/resize/rotate overlay logic.
+- `src/components/tabs/`: configuration panels (background, text, images, export).
+- `src/types.ts`: shared types (text, image, background, etc.).
+
+### Architecture (high level)
+- The main `canvas` produces the final render (1080×1920). Visual editors place a fixed overlay above the canvas for manipulation without repainting the bitmap until actions are confirmed.
+- Painting uses caches (e.g., blur and processed images) to avoid expensive recomputation between frames.
+
+---
+
+## Roadmap for new features
+
+> This section outlines how to add sounds, image gallery/search, GIF support, video export with custom duration, and an audio visualizer.
+
+### 1) Add sounds (audio tracks)
+- UI: new “Audio” tab with track list, file picker (`.mp3/.wav/.ogg`), volume and offset (start) controls.
+- Playback: `Web Audio API` for real‑time preview and signal analysis for the visualizer.
+- Timeline: introduce a project duration in seconds; each track has `start`, `end`, `volume`.
+
+### 2) Image gallery and search
+- Integration with public APIs: Unsplash or Pexels.
+  - Dev env vars: `VITE_UNSPLASH_ACCESS_KEY` or `VITE_PEXELS_API_KEY`.
+- UI: search with pagination, result grid, insert button to add to canvas.
+- Caching: memoize queries and thumbnails.
+
+### 3) GIF support (animated)
+- Import: accept `.gif` and decode frames.
+  - Options: `gifuct-js` client‑side decoding, or `<video>` when you have a prior conversion.
+- Render: when exporting to video, replay GIF frames synchronized with the timeline.
+- Preview: in the editor, use a lightweight frame loop in an overlay or canvas layer with `requestAnimationFrame` (with throttling for performance).
+
+### 4) Export to video with custom duration
+- Render engine: frame‑by‑frame rendering to a buffer and mux with `ffmpeg.wasm` in the browser.
+  - Parameters: `fps` (e.g., 30), fixed `width/height` 1080×1920, custom `duration`.
+- Audio mix: combine tracks with `ffmpeg.wasm` (PCM/WAV input from `Web Audio API` or original files) and sync with video.
+- Formats: `mp4 (H.264 + AAC)` or `webm (VP9 + Opus)` depending on environment support.
+
+### 5) Audio visualizer
+- Real‑time analysis: `Web Audio API` `AnalyserNode` with `getByteFrequencyDomainData` or `getByteTimeDomainData`.
+- Overlays: components that draw bars/radials on the preview canvas.
+- Export: during video render, recreate analysis per frame (or use pre‑recorded spectrum data) to draw the visualizer deterministically.
+
+---
+
+## Suggested technical plan (iterative)
+
+1) Common foundations
+- Add project‑level state: `duration`, `fps`, `tracks` (audio/video), and a simple timeline.
+- Extract shared utilities: text measurement, image caches, scaling/clamp helpers.
+
+2) Basic audio
+- Audio tab: load a track and preview with `AudioContext`.
+- Persist metadata (offset, volume) in project state.
+
+3) Visualizer
+- Create an `AudioAnalyserService` and one or more overlays (bars/wave/radial) with style options.
+
+4) Image search
+- Search component + grid; insert results as `ImageElement` with sensible initial sizing.
+
+5) GIFs
+- Frame decoding pipeline + cache; low‑frequency playback in editor to save CPU.
+
+6) Video export
+- Integrate `@ffmpeg/ffmpeg` (ffmpeg.wasm). Render canvas frames to images (e.g., PNG) and multiplex to `mp4/webm` with audio tracks.
+- Optimize with batching, queues, and progress feedback in the UI.
+
+---
+
+## Environment variables (for external search)
+```bash
+# .env.local
+VITE_UNSPLASH_ACCESS_KEY=...
+VITE_PEXELS_API_KEY=...
+```
+
+## Repository practices
+- Strict TypeScript and ESLint rules (hooks, no `any`, prefer `const`).
+- TailwindCSS for styling and theming.
+- Reusable components and hooks for transforms and overlays.
+
+## Contributing
+1. Create a branch off `main`.
+2. Make sure `npm run lint` and `npm run typecheck` pass.
+3. Open a PR with a clear description and screenshots when applicable.
+
+## License
+MIT. Adapt as needed for your project.
+
+

@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 255 255 255;
+        --foreground: 0 0 0;
+    }
+
+    .dark {
+        --background: 10 10 11;
+        --foreground: 250 250 250;
+    }
+}
+
+input[type="range"] {
+    @apply h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer;
+}
+
+.dark input[type="range"] {
+    @apply bg-dark-800;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    @apply appearance-none w-5 h-5 rounded-full bg-sky-500 cursor-pointer shadow-lg;
+}
+
+input[type="range"]::-moz-range-thumb {
+    @apply w-5 h-5 rounded-full bg-sky-500 cursor-pointer shadow-lg border-0;
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(209 213 219) transparent;
+}
+
+.dark * {
+    scrollbar-color: rgb(63 63 70) transparent;
+}
+
+/* Webkit scrollbar (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgb(209 213 219);
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgb(156 163 175);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: rgb(63 63 70);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgb(82 82 91);
+}
+
+.visual-editor-overlay {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+body.dragging {
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: grabbing !important;
+}
+
+body.dragging * {
+    cursor: grabbing !important;
+}
