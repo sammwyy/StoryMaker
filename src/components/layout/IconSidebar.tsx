@@ -58,11 +58,11 @@ export function IconSidebar({ activeTab, onTabChange, isDark, onToggleTheme }: I
                 </a>
 
                 <a
-                    href="https://ko-fi.com/sammwy"
+                    href="https://www.patreon.com/sammwy"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full h-16 flex items-center justify-center text-gray-600 dark:text-dark-400 hover:bg-gray-100 dark:hover:bg-dark-850 transition-all"
-                    title="Donate with Ko-fi"
+                    title="Donate with Patreon"
                 >
                     <Heart className="w-6 h-6" />
                 </a>
