@@ -1,6 +1,16 @@
 import { AspectRatio } from './types';
 
 export const PREDEFINED_ASPECT_RATIOS: AspectRatio[] = [
+    // Auto - adjusts to background image dimensions
+    {
+        id: 'auto',
+        name: 'Auto (Background Size)',
+        width: 1080,
+        height: 1920,
+        ratio: 'Auto',
+        icon: 'Maximize',
+        category: 'custom'
+    },
     // Social Media
     {
         id: 'instagram-story',

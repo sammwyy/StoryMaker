@@ -30,7 +30,7 @@ function App() {
   const [imageElements, setImageElements] = useState<ImageElement[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [currentAspectRatio, setCurrentAspectRatio] = useState<AspectRatio>(
-    PREDEFINED_ASPECT_RATIOS.find(r => r.id === 'instagram-story')!
+    PREDEFINED_ASPECT_RATIOS.find(r => r.id === 'auto')!
   );
   const [previousDimensions, setPreviousDimensions] = useState({ width: 1080, height: 1920 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -41,11 +41,31 @@ function App() {
       const img = new Image();
       img.onload = () => {
         setImage(img);
+
+        // If current aspect ratio is 'auto', update canvas dimensions to match image
+        if (currentAspectRatio.id === 'auto') {
+          const newAspectRatio: AspectRatio = {
+            id: 'auto',
+            name: 'Auto (Background Size)',
+            width: img.width,
+            height: img.height,
+            ratio: 'Auto',
+            icon: 'Maximize',
+            category: 'custom'
+          };
+
+          // Update canvas dimensions
+          canvasRenderer.setCanvasDimensions(img.width, img.height);
+
+          // Update aspect ratio with new dimensions
+          setCurrentAspectRatio(newAspectRatio);
+          setPreviousDimensions({ width: img.width, height: img.height });
+        }
       };
       img.src = e.target?.result as string;
     };
     reader.readAsDataURL(file);
-  }, []);
+  }, [currentAspectRatio]);
 
   const handleAddText = useCallback(() => {
     const newText: TextElement = {
