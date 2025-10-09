@@ -14,7 +14,7 @@ export interface TextElement {
 }
 
 export interface BackgroundSettings {
-  type: 'fit' | 'stretch' | 'solid' | 'gradient' | 'blur';
+  type: 'fit' | 'stretch' | 'solid' | 'gradient' | 'blur' | 'repeat';
   solidColor: string;
   gradientStart: string;
   gradientEnd: string;
@@ -54,3 +54,13 @@ export interface ImageElement {
 
 export type Tab = 'background' | 'text' | 'images' | 'export';
 export type ExportFormat = 'jpg' | 'png' | 'webp';
+
+export interface AspectRatio {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  ratio: string;
+  icon: string;
+  category: 'social' | 'video' | 'photo' | 'custom';
+}

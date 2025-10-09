@@ -1,10 +1,11 @@
 ## StoryMaker
 
-Online image editor primarily designed for Instagram Stories (9:16). Compose backgrounds, text, and image elements with transforms and effects, and export the result to image formats. This document describes the current state and the plan to add: audio, image gallery/search, GIF support, video export with custom duration, and an audio visualizer.
+Online image editor with adaptive canvas support for multiple social media platforms. Compose backgrounds, text, and image elements with transforms and effects, and export the result to image formats. This document describes the current state and the plan to add: audio, image gallery/search, GIF support, video export with custom duration, and an audio visualizer.
 
 ### Current features
-- **9:16 canvas (1080×1920)**: high‑quality canvas rendering for Stories.
-- **Backgrounds**: `fit`, `stretch`, solid color, gradient, and `blur` with caching for performance.
+- **Adaptive Canvas**: Support for multiple aspect ratios including IG Story, FB Post, Tweet, custom.
+- **Drag & Drop**: Upload images by dragging files directly onto the canvas or background area.
+- **Backgrounds**: `fit`, `stretch`, solid color, gradient, `repeat` and `blur` with caching for performance.
 - **Text**: word/character wrapping, color, size, font, rotation, and outline.
 - **Images**: resize, rotate, mirror H/V, corners (square/rounded/circle/custom), brightness/contrast/blur/filters.
 - **Visual editing**: overlays to move, resize (8 handles), and rotate with a guide circle.
@@ -12,10 +13,12 @@ Online image editor primarily designed for Instagram Stories (9:16). Compose bac
 - **Dark mode**: theme toggle.
 
 ### Quick demo (usage flow)
-1. Upload a background image from the sidebar.
-2. Adjust the background (fit/stretch/solid/gradient/blur).
-3. Add texts and images; use the overlay to move, resize, and rotate.
-4. Export in the desired format.
+1. Select your desired canvas size (Instagram Story, Facebook Post, etc.) from the dropdown.
+2. Upload a background image by dragging & dropping onto the upload area or clicking to browse.
+3. Adjust the background (fit/stretch/solid/gradient/blur/repeat).
+4. Add texts and images; drag & drop additional images directly onto the canvas.
+5. Use the visual overlay to move, resize, and rotate elements.
+6. Export in the desired format (JPG/PNG/WEBP).
 
 ### Requirements
 - Node.js 18+ and npm 9+.
@@ -31,15 +34,19 @@ npm run typecheck
 ```
 
 ### Project structure (overview)
-- `src/components/layout/StoryCanvas.tsx`: canvas rendering of background, images, and text.
+- `src/components/layout/StoryCanvas.tsx`: canvas rendering of background, images, and text with adaptive dimensions.
+- `src/lib/renderer.ts`: `CanvasRenderer` class handling all drawing operations and canvas management.
+- `src/lib/aspectRatios.ts`: predefined aspect ratio configurations for social media platforms.
+- `src/components/ui/AspectRatioDropdown.tsx`: dropdown component for selecting canvas dimensions.
 - `src/components/visual-editor/`: visual editors and overlays (text and image).
 - `src/hooks/useTextTransform.ts`, `src/hooks/useImageTransform.ts`: move/resize/rotate overlay logic.
 - `src/components/tabs/`: configuration panels (background, text, images, export).
-- `src/types.ts`: shared types (text, image, background, etc.).
+- `src/lib/types.ts`: shared types (text, image, background, aspect ratios, etc.).
 
 ### Architecture (high level)
-- The main `canvas` produces the final render (1080×1920). Visual editors place a fixed overlay above the canvas for manipulation without repainting the bitmap until actions are confirmed.
+- The main `canvas` produces the final render with adaptive dimensions based on selected aspect ratio. Visual editors place a fixed overlay above the canvas for manipulation without repainting the bitmap until actions are confirmed.
 - Painting uses caches (e.g., blur and processed images) to avoid expensive recomputation between frames.
+- Canvas dimensions are configurable through the `CanvasRenderer` class, supporting multiple social media formats and custom resolutions.
 
 ---
 

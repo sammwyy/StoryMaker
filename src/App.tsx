@@ -9,7 +9,9 @@ import { ExportPanel } from './components/tabs/ExportPanel';
 import { IconSidebar } from './components/layout/IconSidebar';
 import { VisualTextEditor } from './components/visual-editor';
 import { VisualImageEditor } from './components/visual-editor';
-import { TextElement, BackgroundSettings, Tab, ExportFormat, ImageElement } from './lib/types';
+import { TextElement, BackgroundSettings, Tab, ExportFormat, ImageElement, AspectRatio } from './lib/types';
+import { PREDEFINED_ASPECT_RATIOS } from './lib/aspectRatios';
+import { canvasRenderer } from './lib/renderer';
 
 function App() {
   const { isDark, toggleTheme } = useTheme();
@@ -27,6 +29,10 @@ function App() {
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [imageElements, setImageElements] = useState<ImageElement[]>([]);
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
+  const [currentAspectRatio, setCurrentAspectRatio] = useState<AspectRatio>(
+    PREDEFINED_ASPECT_RATIOS.find(r => r.id === 'instagram-story')!
+  );
+  const [previousDimensions, setPreviousDimensions] = useState({ width: 1080, height: 1920 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleImageUpload = useCallback((file: File) => {
@@ -45,10 +51,10 @@ function App() {
     const newText: TextElement = {
       id: Date.now().toString(),
       text: 'New Text',
-      x: 540,
-      y: 960,
-      size: 700,
-      fontSize: 60,
+      x: currentAspectRatio.width / 2,
+      y: currentAspectRatio.height / 2,
+      size: Math.min(currentAspectRatio.width * 0.65, 700),
+      fontSize: Math.min(currentAspectRatio.width * 0.055, 60),
       fontFamily: 'Arial',
       color: '#ffffff',
       rotation: 0,
@@ -57,7 +63,7 @@ function App() {
     };
     setTextElements(prev => [...prev, newText]);
     setSelectedTextId(newText.id);
-  }, []);
+  }, [currentAspectRatio]);
 
   const handleAddImage = useCallback((file: File) => {
     const reader = new FileReader();
@@ -65,16 +71,16 @@ function App() {
       const src = e.target?.result as string;
       const probe = new Image();
       probe.onload = () => {
-        const maxInitW = 600;
-        const maxInitH = 600;
+        const maxInitW = Math.min(currentAspectRatio.width * 0.6, 600);
+        const maxInitH = Math.min(currentAspectRatio.height * 0.6, 600);
         const scale = Math.min(maxInitW / probe.naturalWidth, maxInitH / probe.naturalHeight, 1);
         const initW = Math.max(10, Math.round(probe.naturalWidth * scale));
         const initH = Math.max(10, Math.round(probe.naturalHeight * scale));
         const newImage: ImageElement = {
           id: Date.now().toString(),
           src,
-          x: 540,
-          y: 960,
+          x: currentAspectRatio.width / 2,
+          y: currentAspectRatio.height / 2,
           width: initW,
           height: initH,
           rotation: 0,
@@ -95,7 +101,7 @@ function App() {
       probe.src = src;
     };
     reader.readAsDataURL(file);
-  }, []);
+  }, [currentAspectRatio]);
 
   const handleUpdateImage = useCallback((id: string, updates: Partial<ImageElement>) => {
     setImageElements(prev => prev.map((i) => (i.id === id ? { ...i, ...updates } : i)));
@@ -114,6 +120,37 @@ function App() {
     setTextElements(prev => prev.filter((t) => t.id !== id));
     setSelectedTextId(prev => prev === id ? null : prev);
   }, []);
+
+  const handleAspectRatioChange = useCallback((aspectRatio: AspectRatio) => {
+    // Adjust existing elements positions to fit new canvas
+    const scaleX = aspectRatio.width / previousDimensions.width;
+    const scaleY = aspectRatio.height / previousDimensions.height;
+
+    // Adjust text elements
+    setTextElements(prev => prev.map(textEl => ({
+      ...textEl,
+      x: textEl.x * scaleX,
+      y: textEl.y * scaleY,
+      size: textEl.size * Math.min(scaleX, scaleY), // Scale size proportionally
+      fontSize: textEl.fontSize * Math.min(scaleX, scaleY),
+    })));
+
+    // Adjust image elements
+    setImageElements(prev => prev.map(imgEl => ({
+      ...imgEl,
+      x: imgEl.x * scaleX,
+      y: imgEl.y * scaleY,
+      width: imgEl.width * Math.min(scaleX, scaleY),
+      height: imgEl.height * Math.min(scaleX, scaleY),
+    })));
+
+    // Update dimensions
+    setCurrentAspectRatio(aspectRatio);
+    setPreviousDimensions({ width: aspectRatio.width, height: aspectRatio.height });
+
+    // Update canvas renderer dimensions
+    canvasRenderer.setCanvasDimensions(aspectRatio.width, aspectRatio.height);
+  }, [previousDimensions]);
 
   const handleExport = useCallback((format: ExportFormat) => {
     const canvas = canvasRef.current;
@@ -141,7 +178,7 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-dark-950 flex">
+    <div className="h-screen bg-white dark:bg-dark-950 flex overflow-hidden">
       <IconSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -150,13 +187,16 @@ function App() {
       />
 
       <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 bg-gray-50 dark:bg-dark-900 relative">
+        <div className="flex-1 bg-gray-50 dark:bg-dark-900 relative overflow-hidden">
           <StoryCanvas
             image={image}
             backgroundSettings={backgroundSettings}
             textElements={textElements}
             imageElements={imageElements}
             canvasRef={canvasRef}
+            onAddImage={handleAddImage}
+            canvasWidth={currentAspectRatio.width}
+            canvasHeight={currentAspectRatio.height}
           />
 
           {/* Visual editors */}
@@ -167,8 +207,8 @@ function App() {
               onSelectText={setSelectedTextId}
               onUpdateText={handleUpdateText}
               canvasRef={canvasRef}
-              canvasWidth={1080}
-              canvasHeight={1920}
+              canvasWidth={currentAspectRatio.width}
+              canvasHeight={currentAspectRatio.height}
             />
           )}
 
@@ -179,8 +219,8 @@ function App() {
               onSelectImage={setSelectedImageId}
               onUpdateImage={handleUpdateImage}
               canvasRef={canvasRef}
-              canvasWidth={1080}
-              canvasHeight={1920}
+              canvasWidth={currentAspectRatio.width}
+              canvasHeight={currentAspectRatio.height}
             />
           )}
         </div>
@@ -193,6 +233,8 @@ function App() {
                 backgroundSettings={backgroundSettings}
                 onBackgroundChange={setBackgroundSettings}
                 hasImage={!!image}
+                onAspectRatioChange={handleAspectRatioChange}
+                currentAspectRatio={currentAspectRatio}
               />
             )}
 
@@ -219,7 +261,7 @@ function App() {
             )}
 
             {activeTab === 'export' && (
-              <ExportPanel onExport={handleExport} disabled={!image} />
+              <ExportPanel onExport={handleExport} disabled={false} />
             )}
           </div>
         </aside>

@@ -1,4 +1,4 @@
-import { Image, Type, Download, Moon, Sun, Github, ImagePlus } from 'lucide-react';
+import { Image, Type, Download, Moon, Sun, Github, ImagePlus, Heart } from 'lucide-react';
 
 import { Tab } from '../../lib/types';
 
@@ -52,9 +52,19 @@ export function IconSidebar({ activeTab, onTabChange, isDark, onToggleTheme }: I
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full h-16 flex items-center justify-center text-gray-600 dark:text-dark-400 hover:bg-gray-100 dark:hover:bg-dark-850 transition-all"
-                    title="GitHub"
+                    title="View source code on GitHub"
                 >
                     <Github className="w-6 h-6" />
+                </a>
+
+                <a
+                    href="https://ko-fi.com/sammwy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full h-16 flex items-center justify-center text-gray-600 dark:text-dark-400 hover:bg-gray-100 dark:hover:bg-dark-850 transition-all"
+                    title="Donate with Ko-fi"
+                >
+                    <Heart className="w-6 h-6" />
                 </a>
             </div>
         </div>

@@ -20,7 +20,7 @@ export const ExportPanel = memo(function ExportPanel({ onExport, disabled }: Exp
             <div>
                 <label className="block text-sm font-semibold mb-3 text-gray-900 dark:text-white">Export Story</label>
                 <p className="text-sm text-gray-500 dark:text-dark-400 mb-4">
-                    {disabled ? 'Upload an image to enable export' : 'Choose format to download your story'}
+                    Choose format to download your story
                 </p>
             </div>
             <div className="grid grid-cols-1 gap-3">
@@ -28,8 +28,7 @@ export const ExportPanel = memo(function ExportPanel({ onExport, disabled }: Exp
                     <button
                         key={format}
                         onClick={() => onExport(format)}
-                        disabled={disabled}
-                        className="flex items-center justify-center gap-2 px-6 py-4 bg-sky-500 text-white rounded-xl font-semibold hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/20 hover:shadow-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-dark-800 disabled:shadow-none"
+                        className="flex items-center justify-center gap-2 px-6 py-4 bg-sky-500 text-white rounded-xl font-semibold hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/20 hover:shadow-sky-500/30"
                     >
                         <Download className="w-5 h-5" />
                         Export as {label}
